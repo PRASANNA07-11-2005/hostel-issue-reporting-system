@@ -20,11 +20,12 @@ const ComplaintsList = () => {
     if (user?.role === 'Student') {
         visible = complaints.filter(c => c.reporterUid === user.uid);
     } else if (user?.role === 'Warden') {
-        visible = complaints.filter(c => c.assignedWardenUid === user.uid);
+        // Warden sees all complaints mapping to their hostel
+        visible = complaints.filter(c => c.reporterHostel === user.hostel);
         // for diagnostics show ones with a different assignment
-        ignored = complaints.filter(c => c.assignedWardenUid && c.assignedWardenUid !== user.uid);
+        ignored = visible.filter(c => c.assignedWardenUid && c.assignedWardenUid !== user.uid);
         // also log unassigned complaints if any
-        const unassigned = complaints.filter(c => !c.assignedWardenUid);
+        const unassigned = visible.filter(c => !c.assignedWardenUid);
         if (unassigned.length) {
             console.log('Warden dashboard: unassigned complaints', unassigned);
         }
@@ -41,7 +42,8 @@ const ComplaintsList = () => {
     // automatically assign them to the current warden so they appear immediately
     React.useEffect(() => {
         if (user?.role === 'Warden' && complaints.length > 0) {
-            const unassigned = complaints.filter(c => !c.assignedWardenUid);
+            // Only auto-assign complaints for the warden's hostel
+            const unassigned = complaints.filter(c => !c.assignedWardenUid && c.reporterHostel === user.hostel);
             if (unassigned.length) {
                 console.log('auto-assigning', unassigned.length, 'unassigned complaints to warden', user.uid);
                 unassigned.forEach(c => {
@@ -53,7 +55,7 @@ const ComplaintsList = () => {
 
     const pendingCount = visible.filter(c => c.status === 'Pending').length;
     const newCount = visible.filter(c => {
-        const hours = (new Date() - new Date(c.createdAt)) / (1000*60*60);
+        const hours = (new Date() - new Date(c.createdAt)) / (1000 * 60 * 60);
         return hours < 24;
     }).length;
 
