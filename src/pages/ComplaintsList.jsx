@@ -20,14 +20,14 @@ const ComplaintsList = () => {
     if (user?.role === 'Student') {
         visible = complaints.filter(c => c.reporterUid === user.uid);
     } else if (user?.role === 'Warden') {
-        // Warden sees all complaints mapping to their hostel
-        visible = complaints.filter(c => c.reporterHostel === user.hostel);
-        // for diagnostics show ones with a different assignment
-        ignored = visible.filter(c => c.assignedWardenUid && c.assignedWardenUid !== user.uid);
-        // also log unassigned complaints if any
+        // Warden acts as a global supervisor and sees all complaints
+        visible = complaints;
+
+        // The concept of 'assigned to me' vs 'assigned to others' is less relevant if they are global, 
+        // but for safety, we still let them see everything.
         const unassigned = visible.filter(c => !c.assignedWardenUid);
         if (unassigned.length) {
-            console.log('Warden dashboard: unassigned complaints', unassigned);
+            console.log('Warden dashboard: unassigned complaints visible', unassigned.length);
         }
     } else if (user?.role === 'Admin') {
         // admin sees everything so visible stays as complaints
@@ -38,20 +38,8 @@ const ComplaintsList = () => {
         console.log('ignored (other assignments)', ignored);
     }
 
-    // if a warden opens the list and there are complaints with no assigned warden,
-    // automatically assign them to the current warden so they appear immediately
-    React.useEffect(() => {
-        if (user?.role === 'Warden' && complaints.length > 0) {
-            // Only auto-assign complaints for the warden's hostel
-            const unassigned = complaints.filter(c => !c.assignedWardenUid && c.reporterHostel === user.hostel);
-            if (unassigned.length) {
-                console.log('auto-assigning', unassigned.length, 'unassigned complaints to warden', user.uid);
-                unassigned.forEach(c => {
-                    updateComplaint(c.id, { assignedWardenUid: user.uid });
-                });
-            }
-        }
-    }, [user, complaints, updateComplaint]);
+    // Removed auto-assignment logic per hostel since Wardens are global supervisors.
+    // They can manually update the status of any complaint.
 
     const pendingCount = visible.filter(c => c.status === 'Pending').length;
     const newCount = visible.filter(c => {
@@ -81,12 +69,12 @@ const ComplaintsList = () => {
     return (
         <div>
             <h1 className="text-2xl font-bold text-secondary-900 mb-2">Complaints</h1>
-            {user?.role === 'Warden' && user.hostel && (
-                <p className="text-sm text-secondary-600 mb-2">Showing complaints for {user.hostel}</p>
+            {user?.role === 'Warden' && (
+                <p className="text-sm text-secondary-600 mb-2">Global Supervisor View: Showing complaints from all hostels</p>
             )}
             {user && (
                 <p className="text-sm text-secondary-600 mb-2">
-                    Role: {user.role} {user.hostel && `(Hostel: ${user.hostel})`}
+                    Role: {user.role} {user.hostel && user.role !== 'Warden' ? `(Hostel: ${user.hostel})` : ''}
                 </p>
             )}
             {(user?.role === 'Warden' || user?.role === 'Admin') && (
@@ -130,7 +118,7 @@ const ComplaintsList = () => {
                             <tr className="bg-gradient-to-r from-primary-700 to-primary-500 text-white text-sm font-semibold uppercase tracking-wider shadow-sm">
                                 <th className="px-6 py-4">ID / Date</th>
                                 {(user?.role === 'Warden' || user?.role === 'Admin') && (
-                                    <th className="px-6 py-4">Reporter</th>
+                                    <th className="px-6 py-4">Reporter & Hostel</th>
                                 )}
                                 {(user?.role === 'Warden' || user?.role === 'Admin') && (
                                     <th className="px-6 py-4">Assigned Warden</th>
@@ -166,8 +154,13 @@ const ComplaintsList = () => {
                                             </div>
                                         </td>
                                         {(user?.role === 'Warden' || user?.role === 'Admin') && (
-                                            <td className="px-6 py-4 text-sm text-secondary-700">
-                                                {complaint.reporterName || complaint.reporterUsername}
+                                            <td className="px-6 py-4">
+                                                <div className="text-sm text-secondary-700 font-medium">
+                                                    {complaint.reporterName || complaint.reporterUsername}
+                                                </div>
+                                                <div className="text-xs text-secondary-500 mt-0.5">
+                                                    {complaint.reporterHostel || 'Not Specified'}
+                                                </div>
                                             </td>
                                         )}
                                         {(user?.role === 'Warden' || user?.role === 'Admin') && (

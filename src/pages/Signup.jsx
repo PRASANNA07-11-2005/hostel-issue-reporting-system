@@ -25,7 +25,7 @@ const Signup = () => {
       setError('Admin accounts must be created manually.');
       return;
     }
-    if (!hostel) {
+    if (role === 'Student' && !hostel) {
       setError('Please select your hostel');
       return;
     }
@@ -104,7 +104,7 @@ const Signup = () => {
             </select>
           </div>
 
-          {role !== 'Admin' && (
+          {role === 'Student' && (
             <div>
               <label className="block text-sm font-medium text-secondary-700 mb-1">Hostel</label>
               <select

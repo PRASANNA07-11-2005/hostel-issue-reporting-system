@@ -12,8 +12,8 @@ const WardenDashboard = () => {
     const [resolutionComment, setResolutionComment] = useState('');
     const [newStatus, setNewStatus] = useState('In Progress');
 
-    // Warden sees non-escalated complaints for their hostel
-    const activeComplaints = complaints.filter(c => c.status !== 'Escalated' && c.reporterHostel === user?.hostel);
+    // Warden acts as a global supervisor: sees all non-escalated complaints
+    const activeComplaints = complaints.filter(c => c.status !== 'Escalated');
 
     const handleUpdate = (e) => {
         e.preventDefault();
@@ -43,15 +43,15 @@ const WardenDashboard = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden mb-6">
                 <div
                     className="h-32 bg-cover bg-center relative"
-                    style={{ backgroundImage: `url(${HOSTELS[user?.hostel] || HOSTELS['Panimalar Campus']})` }}
+                    style={{ backgroundImage: `url(${HOSTELS['Panimalar Campus']})` }}
                 >
                     <div className="absolute inset-0 bg-gradient-to-t from-secondary-900/90 to-secondary-900/20"></div>
                     <div className="absolute bottom-4 left-6 text-white flex justify-between items-end w-[calc(100%-3rem)]">
                         <div>
-                            <h1 className="text-2xl font-bold">Warden Dashboard</h1>
+                            <h1 className="text-2xl font-bold">Global Warden Dashboard</h1>
                             <p className="text-white/80 font-medium flex items-center gap-2 mt-1">
                                 <span className="bg-emerald-600/80 px-2 py-0.5 rounded text-xs uppercase tracking-wider">Warden</span>
-                                {user?.hostel || 'Hostel Not Assigned'}
+                                All Hostels
                             </p>
                         </div>
                         <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-medium border border-white/10">
@@ -101,6 +101,9 @@ const WardenDashboard = () => {
                                     </div>
                                     <h3 className="text-sm font-semibold text-secondary-800 mb-1">
                                         {complaint.category} • <span className={complaint.priority === 'High' ? 'text-red-600' : ''}>{complaint.priority} Priority</span>
+                                        <span className="block text-xs font-normal text-secondary-500 mt-0.5">
+                                            {complaint.reporterHostel || 'No Hostel specified'} • {complaint.reporterName || complaint.reporterUsername}
+                                        </span>
                                     </h3>
                                     <p className="text-sm text-secondary-600 line-clamp-2">{complaint.description}</p>
                                 </div>
