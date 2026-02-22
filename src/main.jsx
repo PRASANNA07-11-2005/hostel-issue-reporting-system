@@ -5,13 +5,8 @@ import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { ComplaintProvider } from './context/ComplaintContext.jsx';
 
-// initialize firebase once at startup (uses firebaseConfig from src/firebase.js)
-import { initializeApp } from 'firebase/app';
-import firebaseConfig from './firebase';
-
-const firebaseApp = initializeApp(firebaseConfig);
-// optionally export firebaseApp if needed elsewhere
-export { firebaseApp };
+// Import Firebase app so it initializes once
+import './firebase';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

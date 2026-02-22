@@ -1,17 +1,18 @@
-// src/firebase.js
 import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: "AIzaSyCH4YkuFYUQ4jLIEBHGCODTZW0b04uCi7o",
+  authDomain: "hostel-issue-reporting-s-65dce.firebaseapp.com",
+  projectId: "hostel-issue-reporting-s-65dce",
+  storageBucket: "hostel-issue-reporting-s-65dce.firebasestorage.app",
+  messagingSenderId: "79190632358",
+  appId: "1:79190632358:web:798f48e8af1ff831a7d167",
+  measurementId: "G-KHZXK8VCH8"
 };
 
-// ✅ initialize ONCE
-const firebaseApp = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
-export default firebaseApp;
+// Export 'app' as default so AuthContext can use it: import firebaseApp from "../firebase"
+export default app;
