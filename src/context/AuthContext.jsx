@@ -9,30 +9,60 @@ import {
   applyActionCode,
   fetchSignInMethodsForEmail,
 } from "firebase/auth";
+import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc } from "firebase/firestore";
 
-import firebaseApp from "../firebase"; // ✅ reuse app
+import firebaseApp, { db } from "../firebase"; // ✅ reuse app and db
 
 const auth = getAuth(firebaseApp);
 const AuthContext = createContext();
 
-/* ================= STORAGE ================= */
-const PROFILE_KEY = "hostel_user_profiles";
+/* ================= FIRESTORE PROFILES ================= */
 
-const saveUserProfile = (uid, profile) => {
-  const all = JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}");
-  all[uid] = { ...all[uid], ...profile };
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(all));
+const saveUserProfile = async (uid, profile) => {
+  try {
+    await setDoc(doc(db, "users", uid), profile, { merge: true });
+  } catch (err) {
+    console.error("Error saving user profile to Firestore:", err);
+  }
 };
 
-const getUserProfile = (uid) => {
-  const all = JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}");
-  return all[uid] || null;
+const getUserProfile = async (uid) => {
+  try {
+    const docSnap = await getDoc(doc(db, "users", uid));
+    if (docSnap.exists()) {
+      return docSnap.data();
+    }
+  } catch (err) {
+    console.error("Error getting user profile from Firestore:", err);
+  }
+  return null;
 };
 
-export const findProfileByEmail = (email) => {
-  const all = JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}");
-  return Object.values(all).find((p) => p.email === email);
+export const findProfileByEmail = async (email) => {
+  try {
+    const q = query(collection(db, "users"), where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].data();
+    }
+  } catch (err) {
+    console.error("Error finding profile by email:", err);
+  }
+  return null;
 };
+
+export const findProfileByUsername = async (username) => {
+  try {
+    const q = query(collection(db, "users"), where("username", "==", username));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].data();
+    }
+  } catch (err) {
+    console.error("Error finding profile by username:", err);
+  }
+  return null;
+}
 
 /* ================= PROVIDER ================= */
 export const AuthProvider = ({ children }) => {
@@ -40,12 +70,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const profile = getUserProfile(firebaseUser.uid) || {};
+        const profile = await getUserProfile(firebaseUser.uid) || {};
 
         if (firebaseUser.emailVerified && !profile.emailVerified) {
-          saveUserProfile(firebaseUser.uid, {
+          await saveUserProfile(firebaseUser.uid, {
             ...profile,
             emailVerified: true,
           });
@@ -70,23 +100,24 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const signup = async ({ email, password, role, hostel, name, username }) => {
-    const existing = findProfileByEmail(email);
-    if (existing) {
+    const existingEmail = await findProfileByEmail(email);
+    if (existingEmail) {
       const methods = await fetchSignInMethodsForEmail(auth, email);
       if (methods.length > 0) {
-        throw new Error(`Email already registered as ${existing.role}`);
+        throw new Error(`Email already registered as ${existingEmail.role}`);
       }
     }
 
-    const all = JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}");
-    if (Object.values(all).some((p) => p.username === username)) {
+    const existingUser = await findProfileByUsername(username);
+    if (existingUser) {
       throw new Error("Username already in use");
     }
 
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await sendEmailVerification(cred.user);
 
-    saveUserProfile(cred.user.uid, {
+    await saveUserProfile(cred.user.uid, {
+      uid: cred.user.uid,
       email,
       role,
       hostel,
@@ -100,7 +131,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async ({ email, password }) => {
     const cred = await signInWithEmailAndPassword(auth, email, password);
-    const profile = getUserProfile(cred.user.uid) || {};
+    const profile = await getUserProfile(cred.user.uid) || {};
 
     if (profile.role !== "Admin" && !cred.user.emailVerified) {
       await signOut(auth);
@@ -114,8 +145,8 @@ export const AuthProvider = ({ children }) => {
     await applyActionCode(auth, oobCode);
     const user = auth.currentUser;
     if (user) {
-      const profile = getUserProfile(user.uid) || {};
-      saveUserProfile(user.uid, { ...profile, emailVerified: true });
+      const profile = await getUserProfile(user.uid) || {};
+      await saveUserProfile(user.uid, { ...profile, emailVerified: true });
     }
   };
 

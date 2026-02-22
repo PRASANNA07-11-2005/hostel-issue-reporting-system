@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCH4YkuFYUQ4jLIEBHGCODTZW0b04uCi7o",
@@ -13,6 +14,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+
+// Export db so Context files can use Firestore
+export const db = getFirestore(app);
 
 // Export 'app' as default so AuthContext can use it: import firebaseApp from "../firebase"
 export default app;
