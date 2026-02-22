@@ -10,7 +10,13 @@ const StudentDashboard = () => {
     const { user } = useAuth();
 
     // Filter to only show the currently logged in student's complaints
-    const myComplaints = complaints.filter(c => c.reporterUid === user?.uid);
+    // Use uid, email, and username to guarantee we find their complaints even if older ones miss the uid
+    const myComplaints = complaints.filter(
+        (c) =>
+            c.reporterUid === user?.uid ||
+            (c.reporterEmail && user?.email && c.reporterEmail === user.email) ||
+            (c.reporterUsername && user?.username && c.reporterUsername === user.username)
+    );
 
     const [formData, setFormData] = useState({
         category: 'Water',
