@@ -117,7 +117,7 @@ export const ComplaintProvider = ({ children }) => {
                 try {
                     const arr = JSON.parse(saved);
                     setComplaints(arr);
-                } catch {}
+                } catch { }
             }
         };
         const id = setInterval(check, 5000);
@@ -146,7 +146,7 @@ export const ComplaintProvider = ({ children }) => {
                 const ch = new BroadcastChannel('hostel_complaints');
                 ch.postMessage(data);
                 ch.close();
-            } catch {}
+            } catch { }
         }
     };
 
@@ -179,7 +179,10 @@ export const ComplaintProvider = ({ children }) => {
         setComplaints(prev => {
             const updated = prev.map(c => {
                 if (c.id !== id) return c;
-                let newC = { ...c, ...updates };
+
+                // create a fully new object to ensure React detects the change
+                const newC = { ...c, ...updates };
+
                 // if a warden is performing the update and the complaint has no assigned warden yet,
                 // assign it automatically
                 if (user?.role === 'Warden') {
@@ -191,6 +194,7 @@ export const ComplaintProvider = ({ children }) => {
                 return newC;
             });
             console.log('Updating complaint', id, updates);
+            localStorage.setItem('hostel_complaints', JSON.stringify(updated));
             broadcast(updated);
             return updated;
         });

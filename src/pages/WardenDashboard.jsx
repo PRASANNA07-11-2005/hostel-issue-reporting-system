@@ -15,6 +15,8 @@ const WardenDashboard = () => {
     // Warden acts as a global supervisor: sees all pending/in-progress complaints
     const activeComplaints = complaints.filter(c => c.status !== 'Escalated' && c.status !== 'Resolved');
 
+    const [toast, setToast] = useState(null);
+
     const handleUpdate = (e) => {
         e.preventDefault();
         if (!selectedComplaint) return;
@@ -23,6 +25,9 @@ const WardenDashboard = () => {
             status: newStatus,
             resolutionComment
         });
+
+        setToast({ message: 'Complaint updated successfully!', type: 'success' });
+        setTimeout(() => setToast(null), 3000);
 
         setSelectedComplaint(null);
         setResolutionComment('');
@@ -63,7 +68,13 @@ const WardenDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-secondary-200 overflow-hidden">
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-secondary-200 overflow-hidden relative">
+                    {toast && (
+                        <div className={`absolute top-4 right-4 flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium animate-in fade-in slide-in-from-top-2 z-10 ${toast.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                            <CheckCircle2 className="w-4 h-4" />
+                            {toast.message}
+                        </div>
+                    )}
                     <div className="p-5 border-b border-secondary-100 bg-secondary-50">
                         <h2 className="font-semibold text-secondary-800">Actionable Complaints</h2>
                     </div>
