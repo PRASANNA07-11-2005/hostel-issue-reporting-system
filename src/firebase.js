@@ -1,23 +1,27 @@
-// Import the functions you need from the SDKs you need
+// Import Firebase SDKs
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getAnalytics, isSupported } from "firebase/analytics";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Firebase configuration using ENV variables
 const firebaseConfig = {
-  apiKey: "AIzaSyCH4YkuFYUQ4jLIEBHGCODTZW0b04uCi7o",
-  authDomain: "hostel-issue-reporting-s-65dce.firebaseapp.com",
-  projectId: "hostel-issue-reporting-s-65dce",
-  storageBucket: "hostel-issue-reporting-s-65dce.firebasestorage.app",
-  messagingSenderId: "79190632358",
-  appId: "1:79190632358:web:798f48e8af1ff831a7d167",
-  measurementId: "G-KHZXK8VCH8"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
-export default firebaseConfig;
+// Analytics (safe for Vercel + browser)
+let analytics;
+isSupported().then((yes) => {
+  if (yes) {
+    analytics = getAnalytics(app);
+  }
+});
+
+export { app, analytics };
