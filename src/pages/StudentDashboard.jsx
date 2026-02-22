@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { useComplaints } from '../context/ComplaintContext';
 import { useAuth } from '../context/AuthContext';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { HOSTELS } from '../utils/constants';
+import { format } from 'date-fns';
 
 const StudentDashboard = () => {
-    const { addComplaint } = useComplaints();
+    const { complaints, addComplaint } = useComplaints();
     const { user } = useAuth();
+
+    // Filter to only show the currently logged in student's complaints
+    const myComplaints = complaints.filter(c => c.reporterUid === user?.uid);
+
     const [formData, setFormData] = useState({
         category: 'Water',
         priority: 'Low',
@@ -37,6 +42,16 @@ const StudentDashboard = () => {
     const showToast = (message, type) => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 3000);
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Pending': return 'bg-yellow-100 text-yellow-800';
+            case 'In Progress': return 'bg-blue-100 text-blue-800';
+            case 'Resolved': return 'bg-emerald-100 text-emerald-800';
+            case 'Escalated': return 'bg-red-100 text-red-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
     };
 
     return (
@@ -118,6 +133,56 @@ const StudentDashboard = () => {
                             Submit Complaint
                         </button>
                     </form>
+                </div>
+            </div>
+
+            {/* Student's Recent Complaints */}
+            <div className="bg-white rounded-2xl shadow-sm border border-secondary-200 overflow-hidden mt-8">
+                <div className="p-6 border-b border-secondary-100 bg-secondary-50 flex justify-between items-center">
+                    <h2 className="text-xl font-bold text-secondary-900">My Recent Complaints</h2>
+                </div>
+                <div className="divide-y divide-secondary-100 max-h-[500px] overflow-y-auto">
+                    {myComplaints.length === 0 ? (
+                        <div className="p-12 text-center flex flex-col items-center">
+                            <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+                                <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                            </div>
+                            <h3 className="text-lg font-bold text-secondary-900">No complaints raised.</h3>
+                            <p className="text-secondary-500 mt-1">If you have any issues, use the form above.</p>
+                        </div>
+                    ) : (
+                        myComplaints.map(complaint => (
+                            <div key={complaint.id} className="p-6 hover:bg-secondary-50 transition-colors">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-bold text-secondary-900">#{complaint.id.slice(-4)}</span>
+                                        <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${getStatusColor(complaint.status)}`}>
+                                            {complaint.status}
+                                        </span>
+                                    </div>
+                                    <span className="text-xs font-medium text-secondary-500 flex items-center gap-1">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        {format(new Date(complaint.createdAt), 'MMM d, HH:mm')}
+                                    </span>
+                                </div>
+                                <h3 className="text-sm font-semibold text-secondary-800 mb-2">
+                                    {complaint.category} • <span className={complaint.priority === 'High' ? 'text-red-500' : ''}>{complaint.priority} Priority</span>
+                                </h3>
+                                <p className="text-sm text-secondary-600 border-l-2 border-secondary-200 pl-3 py-1 mb-3">
+                                    {complaint.description}
+                                </p>
+
+                                {complaint.resolutionComment && (
+                                    <div className="mt-3 bg-secondary-100 p-3 rounded-lg border border-secondary-200">
+                                        <div className="text-xs font-bold uppercase tracking-wider text-secondary-500 mb-1">
+                                            Warden's Response
+                                        </div>
+                                        <p className="text-sm text-secondary-800">{complaint.resolutionComment}</p>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
         </div>

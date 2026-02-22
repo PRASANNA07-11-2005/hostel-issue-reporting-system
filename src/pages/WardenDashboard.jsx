@@ -12,8 +12,8 @@ const WardenDashboard = () => {
     const [resolutionComment, setResolutionComment] = useState('');
     const [newStatus, setNewStatus] = useState('In Progress');
 
-    // Warden acts as a global supervisor: sees all non-escalated complaints
-    const activeComplaints = complaints.filter(c => c.status !== 'Escalated');
+    // Warden acts as a global supervisor: sees all pending/in-progress complaints
+    const activeComplaints = complaints.filter(c => c.status !== 'Escalated' && c.status !== 'Resolved');
 
     const handleUpdate = (e) => {
         e.preventDefault();
