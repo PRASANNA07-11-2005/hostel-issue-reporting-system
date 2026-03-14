@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, Lock, ArrowRight } from 'lucide-react';
-import logo from '../assets/peclogo.png';
-import campusBg from '../assets/peccampus.jpeg';
+import { User, Lock, ArrowRight, BookOpen } from 'lucide-react';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -64,19 +62,17 @@ const Login = () => {
             {/* Background Image with Overlay */}
             <div
                 className="absolute inset-0 z-0 transition-all duration-1000 ease-in-out bg-cover bg-center"
-                style={{ backgroundImage: `url(${campusBg})` }}
+                style={{ backgroundImage: `url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop')` }}
             >
                 <div className="absolute inset-0 bg-secondary-900/70 backdrop-blur-[2px]"></div>
             </div>
 
             <div className="w-full max-w-md p-8 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl z-10 border border-white/20 m-4">
                 <div className="flex flex-col items-center mb-6">
-                    <img
-                        src={logo}
-                        alt="PEC Logo"
-                        className="w-16 h-16 mb-4"
-                    />
-                    <h2 className="text-sm font-bold text-primary-600 tracking-wider uppercase mb-1">Panimalar Engineering College</h2>
+                    <div className="w-16 h-16 mb-4 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center">
+                        <BookOpen size={36} strokeWidth={2.5} />
+                    </div>
+                    <h2 className="text-sm font-bold text-primary-600 tracking-wider uppercase mb-1">ABC Engineering College</h2>
                     <h1 className="text-2xl font-bold text-secondary-900 text-center leading-tight">Hostel Issue Reporting <br />& Auto-Escalation System</h1>
                 </div>
 
@@ -133,7 +129,7 @@ const Login = () => {
             </div>
 
             <div className="absolute bottom-4 text-white/50 text-sm font-medium z-10">
-                © Panimalar Engineering College
+                © ABC Engineering College
             </div>
         </div>
     );
